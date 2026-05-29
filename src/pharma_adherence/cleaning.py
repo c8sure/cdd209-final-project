@@ -52,7 +52,7 @@ def clean_prescription_data(df: pd.DataFrame) -> pd.DataFrame:
     df["drug_name"] = _clean_drug_name_series(df["drug_name"])
 
     #TODO: clean days_supply
-    df["days_supply"] = pd.to_numeric(df["days_supply"])
+    df["days_supply"] = _to_numeric_clean(df["days_supply"])
     df.loc[df["days_supply"] <= 0, "days_supply"] = np.nan
 
     #TODO: clean quantity_dispensed
@@ -65,7 +65,8 @@ def clean_prescription_data(df: pd.DataFrame) -> pd.DataFrame:
 
     #TODO: clean patient_age
     df["patient_age"] = pd.to_numeric(df["patient_age"])
-    df.loc[(df["patient_age"] < 0 | df["patient_age"] > 120), "patient_age"] = np.nan
+    df.loc[
+        (df["patient_age"] < 0) | (df["patient_age"] > 120), "patient_age"] = np.nan
 
     #TODO: clean sex
     df["sex"] = _clean_text_series(df["sex"]).replace({"m" : "male", "f" : "female"})
@@ -78,6 +79,8 @@ def clean_prescription_data(df: pd.DataFrame) -> pd.DataFrame:
 
     #TODO: pharmacy_name
     df["pharmacy_name"] = _clean_text_series(df["pharmacy_name"])
+    df["pharmacy_name"] = df["pharmacy_name"].str.replace(r"#\d+$", "", regex=True).str.strip()
+    df["pharmacy_name"] = df["pharmacy_name"].replace({"csv pharmacy" : "cvs", "csv": "cvs", "walgreens pharmacy" : "walgreens", "cvs pharmacy" : "cvs"})
 
     #TODO: copay_amount
     df["copay_amount"] = _to_numeric_clean(df["copay_amount"])
@@ -89,15 +92,23 @@ def clean_prescription_data(df: pd.DataFrame) -> pd.DataFrame:
 
     #TODO: proportion_days_covered (pdc)
     df["proportion_days_covered"] = _to_numeric_clean(df["proportion_days_covered"])
-    df.loc[(df["proportion_days_covered"] < 0) | (df["proportion_days_covered"] > 1), "proportion_days_covered"] = np.nan
+    df.loc[
+        (df["proportion_days_covered"] < 0) | (df["proportion_days_covered"] > 1), 
+        "proportion_days_covered"
+        ] = np.nan
 
     #########################
 
     #TODO: Drop all duplicate rows
+    df = df.drop_duplicates()
 
     #TODO: Drop rows if missing critical fields: "patient_id", "fill_date", "drug_name"
+    critical_cols = ["patient_id", "fill_date", "drug_name"]
+    df = df.dropna(subset = critical_cols)
 
     #TODO: Sort by "patient_id", "fill_date"
+    sort_cols = ["patient_id", "fill_date"]
+    df = df.sort_values(sort_cols)
 
     df = df.reset_index(drop=True)
 

@@ -48,7 +48,7 @@ class PharmaDataset:
         if self.cleaned is False:
             raise ValueError("Run clean() first.")
         
-        return plot_bar(self.df, x, y)
+        return plot_scatter(self.df, x, y)
 
     def get_patient(self, patient_id):
         if self.cleaned is False:
@@ -58,7 +58,7 @@ class PharmaDataset:
             self.df["patient_id"] == patient_id
         ]
 
-        return PatientAdherenceProfile(patient_id, self.df)
+        return PatientAdherenceProfile(patient_id, patient_df)
     
     def get_df(self):
         return self.df
